@@ -1,17 +1,18 @@
 const asyncHandler = require("express-async-handler");
-const Todos = require("../models/todoModel");
+const pool = require("../config/db");
+// const Todos = require("../models/todoModel");
 
 // Get Goals
-// GET api/goals
+// GET api/todos
 // Private
 const getTodo = asyncHandler(async (req, res) => {
-  const todos = await Todos.find();
+  const todos = await pool.query("SELECT * FROM todos");
 
-  res.status(200).json(todos);
+  res.status(200).json(todos.rows);
 });
 
 // Set Goals
-// POST api/goals
+// POST api/todos/add
 // Private
 const setTodo = asyncHandler(async (req, res) => {
   if (!req.body.text) {
@@ -19,45 +20,49 @@ const setTodo = asyncHandler(async (req, res) => {
     throw new Error(`Please add a text field.`);
   }
 
-  const todo = await Todos.create({
-    text: req.body.text,
-  });
+  const { text } = req.body;
+  const todo = await pool.query(
+    "INSERT INTO todos (text) VALUES($1) RETURNING *",
+    [text]
+  );
 
   res.status(200).json(todo);
 });
 
 // Update Goals
-// PUT api/goals/:id
+// PUT api/todos/:id/update
 // Private
 const updateTodo = asyncHandler(async (req, res) => {
-  const todo = await Todos.findById(req.params.id);
+  const { id } = req.params;
+  const { text } = req.body;
 
-  if (!todo) {
+  if (!id) {
     res.status(400);
-    throw new Error(`Goal not found.`);
+    throw new Error(`Todo ID not found.`);
   }
 
-  const updatedGoal = await Todos.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  });
+  const updatedGoal = await pool.query(
+    "UPDATE todos SET text = $1 WHERE todo_id = $2",
+    [text, id]
+  );
 
   res.status(200).json(updatedGoal);
 });
 
 // Delete Goals
-// DELETE api/goals/:id
+// DELETE api/goals/:id/delete
 // Private
 const deleteTodo = asyncHandler(async (req, res) => {
-  const todo = await Todos.findById(req.params.id);
-
-  if (!todo) {
+  const { id } = req.params;
+  console.log(id);
+  if (!id) {
     res.status(400);
-    throw new Error("Goal not found.");
+    throw new Error("Todo not found.");
   }
 
-  await todo.deleteOne();
+  await pool.query("DELETE FROM todos WHERE todo_id = $1", [id]);
 
-  res.status(200).json({ id: req.params.id });
+  res.status(200).json({ todo_id: req.params.id });
 });
 
 module.exports = { getTodo, setTodo, updateTodo, deleteTodo };

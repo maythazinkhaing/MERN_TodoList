@@ -49,8 +49,8 @@ function App() {
               <Todos
                 key={item._id}
                 text={item.text}
-                deleteTodo={() => deleteTodo(item._id, setTodo)}
-                editMode={() => editMode(item._id, item.text)}
+                deleteTodo={() => deleteTodo(item.todo_id, setTodo)}
+                editMode={() => editMode(item.todo_id, item.text)}
                 isEdit={isEdit}
               />
             );
