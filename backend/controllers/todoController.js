@@ -1,11 +1,12 @@
 const asyncHandler = require("express-async-handler");
 const Todos = require("../models/todoModel");
+const User = require("../models/userModel");
 
 // Get Goals
 // GET api/goals
 // Private
 const getTodo = asyncHandler(async (req, res) => {
-  const todos = await Todos.find();
+  const todos = await Todos.find({ user: req.user.id });
 
   res.status(200).json(todos);
 });
@@ -21,6 +22,7 @@ const setTodo = asyncHandler(async (req, res) => {
 
   const todo = await Todos.create({
     text: req.body.text,
+    user: req.user.id,
   });
 
   res.status(200).json(todo);
@@ -34,7 +36,19 @@ const updateTodo = asyncHandler(async (req, res) => {
 
   if (!todo) {
     res.status(400);
-    throw new Error(`Goal not found.`);
+    throw new Error(`Todo not found.`);
+  }
+
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    res.status(401);
+    throw new Error("User not found.");
+  }
+
+  if (todo.user.toString() !== user.id) {
+    res.status(401);
+    throw new Error("User not authorized.");
   }
 
   const updatedGoal = await Todos.findByIdAndUpdate(req.params.id, req.body, {
@@ -52,7 +66,19 @@ const deleteTodo = asyncHandler(async (req, res) => {
 
   if (!todo) {
     res.status(400);
-    throw new Error("Goal not found.");
+    throw new Error("Todo not found.");
+  }
+
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    res.status(401);
+    throw new Error("User not found.");
+  }
+
+  if (todo.user.toString() !== user.id) {
+    res.status(401);
+    throw new Error("User not authorized.");
   }
 
   await todo.deleteOne();

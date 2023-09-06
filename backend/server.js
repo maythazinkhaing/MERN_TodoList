@@ -16,6 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
 app.use("/api/todos", require("./routes/todoRoutes"));
+app.use("/api/user", require("./routes/userRoutes"));
 
 app.use(errorHandler);
 

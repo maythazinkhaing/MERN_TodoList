@@ -6,15 +6,18 @@ const {
   updateTodo,
   deleteTodo,
 } = require("../controllers/todoController");
+const { protect } = require("../middleware/authMiddleware");
 
-//GET and POST
-router.get("/", getTodo);
+//GET
+router.get("/", protect, getTodo);
 
-router.post("/add", setTodo);
+//POST
+router.post("/add", protect, setTodo);
 
-//PUT and DELETE
-router.put("/:id/update", updateTodo);
+//PUT
+router.put("/:id/update", protect, updateTodo);
 
-router.delete("/:id/delete", deleteTodo);
+//DELETE
+router.delete("/:id/delete", protect, deleteTodo);
 
 module.exports = router;
