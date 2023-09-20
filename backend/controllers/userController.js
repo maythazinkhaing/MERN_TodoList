@@ -35,8 +35,9 @@ const registerUser = asyncHandler(async (req, res) => {
   if (user) {
     res.status(201).json({
       _id: user.id,
-      Username: user.username,
-      Email: user.email,
+      username: user.username,
+      email: user.email,
+      token: generateToken(user._id),
     });
   } else {
     res.status(400);
@@ -50,14 +51,19 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("Please fill out all fields!");
+  }
+
   const user = await User.findOne({ email });
 
   if (user && (await bcrypt.compare(password, user.password))) {
     res.status(201).json({
       _id: user.id,
-      Username: user.username,
-      Email: user.email,
-      Token: generateToken(user._id),
+      username: user.username,
+      email: user.email,
+      token: generateToken(user._id),
     });
   } else {
     res.status(400);
@@ -69,13 +75,7 @@ const loginUser = asyncHandler(async (req, res) => {
 // POST api/user/getMe
 // Public
 const getMe = asyncHandler(async (req, res) => {
-  const { _id, username, email } = await User.findById(req.user.id);
-
-  res.status(200).json({
-    Id: _id,
-    Username: username,
-    Email: email,
-  });
+  res.status(200).json(req.user.id);
 });
 
 //generate JWT
